@@ -4,9 +4,9 @@ A web application designed to help users discover productive and meaningful ways
 
 ## Team Members
 
-- [Your Name] - [Your GitHub Profile]
-- [Member 2] - [Their GitHub Profile]
-- [Member 3] - [Their GitHub Profile]
+- Nattphat Kraiwong - https://github.com/Nobrainbo1
+- Nutchanon Tongkumbanchong - https://github.com/Nutchanon-Tongkumbanchong
+- Krit Japhong - https://github.com/krit-IS-me
 
 ## Project Description
 
@@ -46,59 +46,3 @@ Many people struggle with deciding how to spend their free time productively or 
 - Fields: id, userId, activityId, status (pending/completed/skipped), date
 
 ## How to Use the App
-
-### For Users
-
-1. **Browse Activities**: View available daily activities organized by categories (Creativity, Mindfulness, Productivity, etc.)
-2. **Filter by Preferences**: Filter activities by difficulty level (Easy, Medium, Hard) and estimated time
-3. **Track Progress**: Mark activities as completed, skipped, or save them as favorites
-4. **View Statistics**: Check your completion streaks, progress by category, and overall achievements
-5. **Get Recommendations**: Receive personalized activity suggestions based on your interaction history
-
-### For Developers
-
-- Access the REST API at `/api/` endpoints for CRUD operations
-- MongoDB connection status can be checked at `/api/health` (to be implemented)
-- View activity data and user interactions through the database models
-
-## API Endpoints
-
-### Users
-
-- `GET /api/users/:id` - Get user details
-- `POST /api/users` - Create new user
-- `PUT /api/users/:id` - Update user preferences
-
-### Activities
-
-- `GET /api/activities` - List all activities (with optional filtering)
-- `POST /api/activities` - Create new activity
-- `PUT /api/activities/:id` - Update activity
-- `DELETE /api/activities/:id` - Delete activity
-
-### User Activities
-
-- `GET /api/users/:id/activities` - Get user's activity records
-- `POST /api/users/:id/activities` - Log activity status
-- `PUT /api/user-activities/:id` - Update activity status
-
-## Screenshots
-
-_Screenshots will be added here once the UI is developed_
-
-## Development Timeline
-
-- **Week 1:** Setup, API development, and core functionality
-- **Week 2:** UI development, testing, and deployment
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is created for educational purposes as part of a university web application development course.

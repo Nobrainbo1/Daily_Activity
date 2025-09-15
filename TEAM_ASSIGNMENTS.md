@@ -8,7 +8,6 @@
 
 ---
 
-## 🎯 **ART's Tasks** (Frontend & UI - 5 marks)
 
 ### UI Development
 
@@ -29,7 +28,6 @@
 
 ---
 
-## 🔧 **NUT's Tasks** (Backend & 3 CRUD Models - 30 marks)
 
 ### Data Models (Required 3 Entities) ✅ COMPLETED
 
@@ -63,7 +61,6 @@
 
 ---
 
-## 🚀 **KRIT's Tasks** (Integration & Deployment - 10 marks)
 
 ### Frontend-Backend Integration
 
@@ -93,20 +90,6 @@
 
 ## 📋 **Shared Requirements**
 
-### Git Workflow
-
-```bash
-# Branch naming convention
-art/feature-name    # Art's branches
-nut/feature-name    # Nut's branches
-krit/feature-name   # Krit's branches
-
-# Commit format
-feat: description
-fix: description
-docs: description
-```
-
 ### Professor's Grading Breakdown (50 marks)
 
 - [ ] **Code Repository (5 marks)**: Well-formed README.md with project info, team members, screenshots
@@ -124,12 +107,6 @@ docs: description
 - [ ] **GitHub Repository**: Source code with commit history showing individual contributions
 - [ ] **README.md**: Project name, team members (links to their repos), description, screenshots
 - [ ] **5-minute Demo Video**: YouTube (unlisted) showing system usage
-
-### Individual Contributions Must Be Visible
-
-- [ ] **Art**: Frontend/UI commits clearly attributed
-- [ ] **Nut**: Backend/API commits clearly attributed
-- [ ] **Krit**: Integration/deployment commits clearly attributed
 
 ---
 
