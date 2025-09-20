@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+// Delete existing model to avoid caching issues
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
+
 const UserSchema = new mongoose.Schema(
   {
     name: {
@@ -8,15 +13,18 @@ const UserSchema = new mongoose.Schema(
       trim: true,
       maxLength: [50, 'Name cannot be more than 50 characters'],
     },
-    email: {
+    username: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Username is required'],
       unique: true,
-      lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please enter a valid email',
-      ],
+      trim: true,
+      minLength: [3, 'Username must be at least 3 characters'],
+      maxLength: [20, 'Username cannot be more than 20 characters'],
+    },
+    password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minLength: [6, 'Password must be at least 6 characters'],
     },
     preferences: {
       skillGoals: {

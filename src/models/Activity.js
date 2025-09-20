@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+// Delete existing model to avoid caching issues
+if (mongoose.models.Activity) {
+  delete mongoose.models.Activity;
+}
+
 const ActivitySchema = new mongoose.Schema(
   {
     title: {

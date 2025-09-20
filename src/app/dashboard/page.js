@@ -1,14 +1,93 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { mockUsers, mockUserActivities } from '@/data';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-  // Mock current user (Alex Johnson)
-  const currentUser = mockUsers[0];
-  
-  // Mock user's activities
-  const userActivities = mockUserActivities.filter(activity => activity.userId === 'user1');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userActivities, setUserActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is logged in
+    if (typeof window !== 'undefined') {
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        router.push('/');
+        return;
+      }
+      
+      const user = JSON.parse(userData);
+      setCurrentUser(user);
+      fetchDashboardData(user._id);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user');
+      router.push('/');
+    }
+  };
+
+  const fetchDashboardData = async (userId) => {
+    try {
+      setLoading(true);
+      
+      // Fetch user activities
+      const activitiesResponse = await fetch(`/api/user-activities?userId=${userId}`);
+      const activitiesData = await activitiesResponse.json();
+
+      if (activitiesData.success) {
+        setUserActivities(activitiesData.data);
+      } else {
+        console.error('Failed to load activities:', activitiesData.message);
+      }
+
+      setError(null);
+    } catch (err) {
+      setError('Failed to connect to server');
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#0474C4' }}></div>
+            <p className="mt-4" style={{ color: '#2C444C' }}>Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !currentUser) {
+    return (
+      <div className="min-h-screen p-6" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">{error || 'User not found'}</p>
+            <button 
+              onClick={fetchDashboardData}
+              className="px-6 py-3 text-white rounded-lg transition-all duration-200 transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #0474C4, #5379AE)' }}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const completedActivities = userActivities.filter(activity => activity.status === 'completed');
   const pendingActivities = userActivities.filter(activity => activity.status === 'pending');
 
@@ -21,13 +100,29 @@ export default function DashboardPage() {
             <h1 className="text-4xl font-bold sapphire-text-gradient">Welcome back, {currentUser.name}!</h1>
             <p className="text-xl" style={{ color: '#2C444C' }}>Here's your personal growth dashboard</p>
           </div>
-          <Link 
-            href="/" 
-            className="px-4 py-2 text-white rounded-lg transition-all duration-200 transform hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #0474C4, #5379AE)' }}
-          >
-            ← Back to Home
-          </Link>
+          <div className="flex gap-3">
+            <Link 
+              href="/activities" 
+              className="px-4 py-2 text-white rounded-lg transition-all duration-200 transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #5379AE, #A8C4EC)' }}
+            >
+              My Activities
+            </Link>
+            <Link 
+              href="/settings" 
+              className="px-4 py-2 text-white rounded-lg transition-all duration-200 transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #06457F, #0474C4)' }}
+            >
+              Settings
+            </Link>
+            <button 
+              onClick={handleLogout}
+              className="px-4 py-2 text-white rounded-lg transition-all duration-200 transform hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #2C444C, #262B40)' }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats Overview */}

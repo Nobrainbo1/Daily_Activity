@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+// Delete existing model to avoid caching issues
+if (mongoose.models.UserActivity) {
+  delete mongoose.models.UserActivity;
+}
+
 const UserActivitySchema = new mongoose.Schema(
   {
     userId: {
@@ -15,8 +20,16 @@ const UserActivitySchema = new mongoose.Schema(
     status: {
       type: String,
       required: [true, 'Status is required'],
-      enum: ['pending', 'completed', 'skipped', 'favorited'],
-      default: 'pending',
+      enum: ['added', 'pending', 'completed', 'skipped', 'saved', 'deleted'],
+      default: 'added',
+    },
+    scheduledTime: {
+      type: String, // Time slot like "09:00", "14:30", etc.
+      default: null,
+    },
+    scheduledDate: {
+      type: Date,
+      default: null,
     },
     completedAt: {
       type: Date,
@@ -44,6 +57,10 @@ const UserActivitySchema = new mongoose.Schema(
       trim: true,
       maxLength: [500, 'Notes cannot be more than 500 characters'],
       default: '',
+    },
+    scheduledTime: {
+      type: String,
+      default: null,
     },
   },
   {

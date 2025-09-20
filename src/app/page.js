@@ -1,125 +1,232 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [dbStatus, setDbStatus] = useState(null);
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    name: ''
+  });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const router = useRouter();
 
-  const checkDatabaseConnection = async () => {
+  // Always show login page - user can navigate to activities manually
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
+    setError('');
+
     try {
-      const response = await fetch('/api/health');
-      const data = await response.json();
-      setDbStatus(data);
-    } catch (error) {
-      setDbStatus({
-        success: false,
-        message: 'Failed to connect to API',
-        error: error.message
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const payload = isLogin 
+        ? { username: formData.username, password: formData.password }
+        : { username: formData.username, password: formData.password, name: formData.name };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/activities');
+      } else {
+        setError(data.error || 'Authentication failed');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+      console.error('Auth error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="font-sans min-h-screen" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
-      <div className="p-8 max-w-4xl mx-auto">
-        <header className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 sapphire-text-gradient">What To Do</h1>
-          <p className="text-xl" style={{ color: '#2C444C' }}>
-            Your daily activity recommendation app for personal growth
-          </p>
-        </header>
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError('');
+    setFormData({
+      username: '',
+      password: '',
+      name: ''
+    });
+  };
 
-      <main className="space-y-8">
-        {/* Database Connection Test */}
-        <section className="bg-white p-6 rounded-lg shadow-lg border border-opacity-20" style={{ borderColor: '#A8C4EC' }}>
-          <h2 className="text-2xl font-semibold mb-4" style={{ color: '#262B40' }}>Database Connection Test</h2>
-          <div className="space-y-4">
-            <button
-              onClick={checkDatabaseConnection}
-              disabled={loading}
-              className="text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105"
-              style={{ 
-                background: loading ? '#A8C4EC' : 'linear-gradient(135deg, #0474C4, #5379AE)',
-                cursor: loading ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {loading ? 'Checking...' : 'Test Database Connection'}
-            </button>
-            
-            {dbStatus && (
-              <div className={`p-4 rounded-lg ${dbStatus.success ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300'}`}>
-                <div className="flex items-center space-x-2">
-                  <span className={`w-3 h-3 rounded-full ${dbStatus.success ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  <span className="font-medium">
-                    {dbStatus.success ? 'Connected' : 'Connection Failed'}
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-gray-700">{dbStatus.message}</p>
-                {dbStatus.timestamp && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Checked at: {new Date(dbStatus.timestamp).toLocaleString()}
-                  </p>
-                )}
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#0474C4' }}></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}>
+      <div className="max-w-md w-full mx-4">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-2 sapphire-text-gradient">Daily Activity Tracker</h1>
+          <p className="text-lg" style={{ color: '#2C444C' }}>Your personal growth companion</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-xl p-8 border border-opacity-20" style={{ borderColor: '#A8C4EC' }}>
+          {/* Check if user is already logged in */}
+          {typeof window !== 'undefined' && localStorage.getItem('user') && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-blue-700 text-center mb-3">
+                You're already logged in as <strong>{JSON.parse(localStorage.getItem('user')).name}</strong>
+              </p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  onClick={() => router.push('/activities')}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Continue to Activities
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('selectedActivity');
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                  Login as Different User
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-center" style={{ color: '#262B40' }}>
+              {isLogin ? 'Welcome Back' : 'Create Account'}
+            </h2>
+            <p className="text-center mt-2" style={{ color: '#2C444C' }}>
+              {isLogin ? 'Sign in to continue your journey' : 'Start your personal growth journey'}
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: '#2C444C' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required={!isLogin}
+                  className="w-full p-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                  style={{ borderColor: '#A8C4EC' }}
+                  placeholder="Enter your full name"
+                />
               </div>
             )}
-          </div>
-        </section>
 
-        {/* Navigation to App Features */}
-        <section className="bg-white p-6 rounded-lg shadow-lg border border-opacity-20" style={{ borderColor: '#A8C4EC' }}>
-          <h2 className="text-2xl font-semibold mb-6" style={{ color: '#262B40' }}>Explore the App</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <a href="/activities" className="block p-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-transparent"
-               style={{ 
-                 background: 'linear-gradient(135deg, #A8C4EC, #0474C4)', 
-                 color: 'white'
-               }}
-               onMouseEnter={(e) => e.target.style.borderColor = '#06457F'}
-               onMouseLeave={(e) => e.target.style.borderColor = 'transparent'}>
-              <div className="text-3xl mb-4">📝</div>
-              <h3 className="font-semibold mb-2">Browse Activities</h3>
-              <p className="text-sm mb-4 opacity-90">
-                Discover personalized activities for personal growth and skill development
-              </p>
-              <span className="font-medium">Explore Activities →</span>
-            </a>
-            
-            <a href="/dashboard" className="block p-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-transparent"
-               style={{ 
-                 background: 'linear-gradient(135deg, #5379AE, #2C444C)', 
-                 color: 'white'
-               }}
-               onMouseEnter={(e) => e.target.style.borderColor = '#06457F'}
-               onMouseLeave={(e) => e.target.style.borderColor = 'transparent'}>
-              <div className="text-3xl mb-4">📊</div>
-              <h3 className="font-semibold mb-2">Your Dashboard</h3>
-              <p className="text-sm mb-4 opacity-90">
-                Track your progress, streaks, achievements, and personal growth
-              </p>
-              <span className="font-medium">View Dashboard →</span>
-            </a>
-            
-            <a href="/profile" className="block p-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-transparent"
-               style={{ 
-                 background: 'linear-gradient(135deg, #06457F, #262B40)', 
-                 color: 'white'
-               }}
-               onMouseEnter={(e) => e.target.style.borderColor = '#A8C4EC'}
-               onMouseLeave={(e) => e.target.style.borderColor = 'transparent'}>
-              <div className="text-3xl mb-4">👤</div>
-              <h3 className="font-semibold mb-2">Profile Settings</h3>
-              <p className="text-sm mb-4 opacity-90">
-                Manage your preferences, goals, and personal information
-              </p>
-              <span className="font-medium">Edit Profile →</span>
-            </a>
+
+
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: '#2C444C' }}>
+                Username
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                style={{ borderColor: '#A8C4EC' }}
+                placeholder="Enter your username"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1" style={{ color: '#2C444C' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                className="w-full p-3 border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                style={{ borderColor: '#A8C4EC' }}
+                placeholder="Enter your password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              style={{ background: loading ? '#A8C4EC' : 'linear-gradient(135deg, #0474C4, #5379AE)' }}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  {isLogin ? 'Signing In...' : 'Creating Account...'}
+                </div>
+              ) : (
+                isLogin ? 'Sign In' : 'Create Account'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p style={{ color: '#2C444C' }}>
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button
+                onClick={toggleMode}
+                className="font-medium hover:underline transition-colors"
+                style={{ color: '#0474C4' }}
+              >
+                {isLogin ? 'Sign Up' : 'Sign In'}
+              </button>
+            </p>
           </div>
-        </section>
-      </main>
+        </div>
+
+        <div className="mt-6 text-center">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm" style={{ color: '#2C444C' }}>
+              <strong>Demo Users:</strong><br />
+              alex123 / password123<br />
+              sarah456 / password456
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
