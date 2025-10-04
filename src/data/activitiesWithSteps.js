@@ -4,7 +4,7 @@ export const mockActivitiesWithSteps = [
     description: 'Start your day with mindfulness and inner peace. Connect with your breath and set positive intentions for the day ahead.',
     category: 'Mindfulness',
     difficulty: 'Easy',
-    estimatedTime: 15,
+    estimatedTime: 12,
     tags: ['meditation', 'mindfulness', 'morning', 'stress-relief'],
     instructions: [
       'Find a quiet, comfortable space',
@@ -24,8 +24,8 @@ export const mockActivitiesWithSteps = [
           'Dim the lights or use natural morning light',
           'Consider playing soft nature sounds or silence'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=inpok4MKVLM',
-        estimatedDuration: 2
+        videoUrl: 'https://www.youtube.com/watch?v=dhFt7eURm78',
+        estimatedDuration: 3
       },
       {
         stepNumber: 2,
@@ -37,8 +37,8 @@ export const mockActivitiesWithSteps = [
           'Keep your hands relaxed in a comfortable position',
           'Maintain a slight natural curve in your lower back'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=aNXKjGFUlMs',
-        estimatedDuration: 3
+        videoUrl: 'https://www.youtube.com/watch?v=OyK0oE5rwFY',
+        estimatedDuration: 5
       },
       {
         stepNumber: 3,
@@ -50,8 +50,8 @@ export const mockActivitiesWithSteps = [
           'If your mind wanders, gently return focus to breath',
           'Count breaths if it helps maintain focus (1-10, repeat)'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=ZToicYcHIOU',
-        estimatedDuration: 10
+        videoUrl: 'https://www.youtube.com/watch?v=RiMb2Bw4Ae8',
+        estimatedDuration: 4
       }
     ],
     materials: ['Meditation cushion (optional)', 'Timer', 'Quiet space'],
@@ -68,7 +68,7 @@ export const mockActivitiesWithSteps = [
     description: 'Express your thoughts, feelings, and ideas through free-form writing and creative expression. A powerful tool for self-discovery.',
     category: 'Creativity',
     difficulty: 'Easy',
-    estimatedTime: 20,
+    estimatedTime: 17,
     tags: ['writing', 'creativity', 'self-expression', 'reflection'],
     instructions: [
       'Get your journal and favorite pen',
@@ -88,8 +88,8 @@ export const mockActivitiesWithSteps = [
           'Keep stickers, washi tape, or stamps nearby',
           'Have a beverage you enjoy within reach'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=rW5xx3xjyZ0',
-        estimatedDuration: 3
+        videoUrl: 'https://www.youtube.com/watch?v=njstk6xlrh0',
+        estimatedDuration: 7
       },
       {
         stepNumber: 2,
@@ -101,8 +101,8 @@ export const mockActivitiesWithSteps = [
           'Use prompts: "Today I am grateful for..." or "I wish..."',
           'It\'s okay to have no specific topic'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=sbOhWPzM8HA',
-        estimatedDuration: 2
+        videoUrl: 'https://www.youtube.com/watch?v=QG_WlhxynHo',
+        estimatedDuration: 7
       },
       {
         stepNumber: 3,
@@ -114,8 +114,8 @@ export const mockActivitiesWithSteps = [
           'Be honest and authentic with yourself',
           'Let go of perfection and embrace the process'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=JdG9sVfMy6I',
-        estimatedDuration: 15
+        videoUrl: 'https://www.youtube.com/watch?v=gtcfnDG_0M0',
+        estimatedDuration: 3
       }
     ],
     materials: ['Journal or notebook', 'Pen or pencil', 'Art supplies (optional)', 'Quiet space'],
@@ -152,20 +152,20 @@ export const mockActivitiesWithSteps = [
           'Gradually increase intensity',
           'Focus on breathing deeply'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=8I0H8KeaZpU',
+        videoUrl: 'https://www.youtube.com/watch?v=2wnYsIf4sLU',
         estimatedDuration: 5
       },
       {
         stepNumber: 2,
         title: 'High-Intensity Circuit',
-        description: 'Perform 30 seconds of intense exercise followed by 30 seconds rest. Complete 4 rounds: jumping jacks, burpees, mountain climbers, high knees.',
+        description: 'Perform 15 minutes of intense exercise: jumping jacks, burpees, mountain climbers, high knees.',
         tips: [
           'Push yourself during work intervals',
           'Maintain proper form to prevent injury',
           'Breathe rhythmically - don\'t hold your breath',
           'Modify exercises if needed (e.g., step instead of jump)'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=ml6cT4AZdqI',
+        videoUrl: 'https://www.youtube.com/watch?v=J212vz33gU4',
         estimatedDuration: 16
       },
       {
@@ -178,7 +178,7 @@ export const mockActivitiesWithSteps = [
           'Focus on legs, hips, back, and shoulders',
           'Take deep breaths during stretches'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=g_tea8ZNk5A',
+        videoUrl: 'https://www.youtube.com/watch?v=0UY_SL9oIVA',
         estimatedDuration: 4
       }
     ],
@@ -196,7 +196,7 @@ export const mockActivitiesWithSteps = [
     description: 'A walking meditation that combines movement with mindfulness. Perfect for connecting with nature and your inner self.',
     category: 'Mindfulness',
     difficulty: 'Easy',
-    estimatedTime: 30,
+    estimatedTime: 17,
     tags: ['walking', 'mindfulness', 'nature', 'meditation', 'outdoor'],
     instructions: [
       'Choose a peaceful walking route',
@@ -216,7 +216,7 @@ export const mockActivitiesWithSteps = [
           'Consider nature settings for added benefits',
           'Ensure the path is safe and well-lit if walking in evening'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=vfQJGM_EH_I',
+        videoUrl: 'https://www.youtube.com/watch?v=XNTj5la2tSo',
         estimatedDuration: 3
       },
       {
@@ -229,8 +229,8 @@ export const mockActivitiesWithSteps = [
           'Coordinate breath with steps if helpful',
           'When mind wanders, gently return to walking'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=P229SOJtV4Y',
-        estimatedDuration: 20
+        videoUrl: 'https://www.youtube.com/watch?v=0P3Deuv8tbc',
+        estimatedDuration: 7
       },
       {
         stepNumber: 3,
@@ -242,7 +242,7 @@ export const mockActivitiesWithSteps = [
           'Feel the air temperature and breeze on your skin',
           'Smell flowers, trees, or fresh air'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=6l3K4okUweY',
+        videoUrl: 'https://www.youtube.com/watch?v=ictQX-hp5VY',
         estimatedDuration: 7
       }
     ],
@@ -256,66 +256,70 @@ export const mockActivitiesWithSteps = [
     isActive: true
   },
   {
-    title: 'Learn a New Language Phrase',
-    description: 'Expand your linguistic horizons by learning useful phrases in a new language. A fun brain exercise!',
+    title: 'Learn Thai Language',
+    description: 'Discover the beautiful Thai language by learning essential phrases and basic pronunciation. Connect with Thai culture through language!',
     category: 'Learning',
     difficulty: 'Easy',
-    estimatedTime: 15,
-    tags: ['language', 'learning', 'education', 'brain-training', 'culture'],
+    estimatedTime: 37,
+    tags: ['thai', 'language', 'learning', 'education', 'culture', 'southeast-asia'],
     instructions: [
-      'Choose a language you want to learn',
-      'Pick 5-10 useful phrases',
-      'Practice pronunciation carefully',
-      'Write down the phrases',
-      'Use them in sentences'
+      'Learn basic Thai greetings and polite expressions',
+      'Practice Thai pronunciation and tones',
+      'Write Thai phrases with English translations',
+      'Use phrases in simple conversations',
+      'Explore Thai cultural context'
     ],
     steps: [
       {
         stepNumber: 1,
-        title: 'Choose Your Language & Phrases',
-        description: 'Select a language that interests you and pick 5-10 practical phrases to learn today.',
+        title: 'Learn Basic Thai Greetings',
+        description: 'Start with essential Thai greetings and polite expressions that you can use in daily conversations.',
         tips: [
-          'Start with common greetings and polite expressions',
-          'Consider: Hello, Thank you, Please, How are you?',
-          'Choose phrases relevant to your interests',
-          'Use language learning apps for phrase ideas'
+          'Sawasdee (สวัสดี) - Hello/Goodbye',
+          'Khop khun (ขอบคุณ) - Thank you',
+          'Khop khun krap/ka (ขอบคุณครับ/ค่ะ) - Thank you (polite)',
+          'Chai (ใช่) - Yes, Mai chai (ไม่ใช่) - No',
+          'Khor thot (ขอโทษ) - Sorry/Excuse me'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=illApgaLgGA',
-        estimatedDuration: 3
+        videoUrl: 'https://www.youtube.com/watch?v=vpGdD9fgWsw',
+        estimatedDuration: 7
       },
       {
         stepNumber: 2,
-        title: 'Listen & Practice Pronunciation',
-        description: 'Use online resources to hear native pronunciation. Repeat each phrase multiple times until comfortable.',
+        title: 'Practice Thai Pronunciation & Tones',
+        description: 'Focus on Thai pronunciation, especially the five tones that are crucial for meaning in Thai language.',
         tips: [
-          'Listen to pronunciation videos or audio',
-          'Break down longer phrases into syllables',
-          'Record yourself and compare to native speakers',
-          'Practice out loud, not just in your head'
+          'Listen to native Thai speakers for tone patterns',
+          'Practice the five tones: mid, low, falling, high, rising',
+          'Start with simple words like "ma" (ม้า - horse, มา - come)',
+          'Use tone markers to help with pronunciation',
+          'Record yourself and compare to native speakers'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=d0yGdNEWdn0',
-        estimatedDuration: 8
+        videoUrl: 'https://www.youtube.com/watch?v=5POKltn6HqU',
+        estimatedDuration: 15
       },
       {
         stepNumber: 3,
-        title: 'Write & Create Sentences',
-        description: 'Write down the phrases and their meanings. Try using them in simple sentences or conversations.',
+        title: 'Write Thai Script & Create Sentences',
+        description: 'Learn basic Thai script and practice writing simple phrases. Create sentences using the words you\'ve learned.',
         tips: [
-          'Create flashcards for review',
-          'Write example sentences using the phrases',
-          'Practice with a language exchange partner',
-          'Review phrases tomorrow to reinforce memory'
+          'Start with common Thai consonants and vowels',
+          'Write Thai phrases with English translations',
+          'Practice: "Sawasdee krap/ka" (Hello - male/female)',
+          'Learn numbers 1-10: nueng, song, sam, see, ha...',
+          'Create simple sentences like "Khop khun krap" (Thank you)'
         ],
-        videoUrl: 'https://www.youtube.com/watch?v=TfRFvDVN4Vg',
-        estimatedDuration: 4
+        videoUrl: 'https://www.youtube.com/watch?v=6cWbrx9LtLk',
+        estimatedDuration: 15
       }
     ],
-    materials: ['Notebook or language app', 'Pen', 'Internet access', 'Language learning resources'],
+    materials: ['Notebook', 'Pen', 'Internet access', 'Thai language learning app', 'Thai-English dictionary'],
     benefits: [
+      'Opens doors to Thai culture and traditions',
       'Enhances cognitive function and memory',
-      'Opens doors to new cultures',
-      'Improves communication skills',
-      'Boosts confidence and brain health'
+      'Improves communication with Thai speakers',
+      'Boosts confidence in language learning',
+      'Provides foundation for further Thai study'
     ],
     isActive: true
   }

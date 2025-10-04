@@ -10,8 +10,6 @@ export default function UserActivity() {
     total: 0,
     inProgress: 0,
     completed: 0,
-    notStarted: 0,
-    totalTimeInvested: 0,
     averageProgress: 0
   });
   const router = useRouter();
@@ -36,14 +34,24 @@ export default function UserActivity() {
     }
   }, [router]);
 
+  // Refresh data when page becomes visible (e.g., returning from activity execution)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user?._id) {
+        fetchUserActivities(user._id);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
+
   const calculateStats = (activities) => {
     if (!activities || activities.length === 0) {
       return {
         total: 0,
         inProgress: 0,
         completed: 0,
-        notStarted: 0,
-        totalTimeInvested: 0,
         averageProgress: 0
       };
     }
@@ -51,15 +59,6 @@ export default function UserActivity() {
     const total = activities.length;
     const completed = activities.filter(a => a.status === 'completed').length;
     const inProgress = activities.filter(a => a.status === 'in-progress').length;
-    const notStarted = activities.filter(a => a.status === 'added' || !a.status).length;
-    
-    // Calculate total time invested (sum of completed activities' time)
-    const totalTimeInvested = activities.reduce((sum, activity) => {
-      if (activity.activityId?.estimatedTime && activity.status === 'completed') {
-        return sum + activity.activityId.estimatedTime;
-      }
-      return sum;
-    }, 0);
 
     // Calculate average progress
     const totalProgress = activities.reduce((sum, activity) => {
@@ -71,8 +70,6 @@ export default function UserActivity() {
       total,
       inProgress,
       completed,
-      notStarted,
-      totalTimeInvested,
       averageProgress
     };
   };
@@ -225,7 +222,7 @@ export default function UserActivity() {
           {/* Overall Statistics Dashboard */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Overall Progress</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Activities */}
               <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
                 <div className="flex items-center justify-between">
@@ -265,32 +262,7 @@ export default function UserActivity() {
                 </div>
               </div>
 
-              {/* Not Started */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Not Started</p>
-                    <p className="text-3xl font-bold text-gray-600 mt-2">{stats.notStarted}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-2xl">
-                    ⏸️
-                  </div>
-                </div>
-              </div>
 
-              {/* Time Invested */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Time Invested</p>
-                    <p className="text-3xl font-bold text-purple-600 mt-2">{stats.totalTimeInvested}</p>
-                    <p className="text-xs text-gray-500">minutes</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl">
-                    ⏱️
-                  </div>
-                </div>
-              </div>
 
               {/* Average Progress */}
               <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">

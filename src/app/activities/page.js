@@ -168,7 +168,7 @@ export default function Activities() {
                   onClick={() => router.push('/user-activity')}
                   className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
                 >
-                  📊 My Activities
+                  My Activities
                 </button>
                 <button
                   onClick={() => router.push('/settings')}
@@ -176,6 +176,14 @@ export default function Activities() {
                 >
                   ⚙️ Settings
                 </button>
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => router.push('/admin/edit-activities')}
+                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  >
+                    🔒 Admin Edit
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
@@ -307,7 +315,7 @@ export default function Activities() {
                             onClick={() => addActivityToUser(activity)}
                             className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)} hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
                           >
-                            🚀 Start Activity
+                            Add Activity
                           </button>
                         </div>
                       </div>

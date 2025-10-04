@@ -20,7 +20,7 @@ const UserActivitySchema = new mongoose.Schema(
     status: {
       type: String,
       required: [true, 'Status is required'],
-      enum: ['added', 'pending', 'completed', 'skipped', 'saved', 'deleted'],
+      enum: ['added', 'pending', 'in-progress', 'completed', 'skipped', 'saved', 'deleted'],
       default: 'added',
     },
     scheduledTime: {

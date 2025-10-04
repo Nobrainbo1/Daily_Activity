@@ -17,7 +17,15 @@ export default function EditActivities() {
         router.push('/');
         return;
       }
-      setUser(JSON.parse(userData));
+      const user = JSON.parse(userData);
+      setUser(user);
+      
+      // Check if user is admin
+      if (user.role !== 'admin') {
+        alert('Access denied. Admin privileges required.');
+        router.push('/activities');
+        return;
+      }
     }
     fetchActivities();
   }, [router]);
@@ -56,6 +64,7 @@ export default function EditActivities() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           activityId: editingActivity._id,
+          userRole: user.role,
           updates: {
             title: editingActivity.title,
             description: editingActivity.description,
@@ -100,20 +109,31 @@ export default function EditActivities() {
       <div className="relative z-10 container mx-auto px-4 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={() => router.push('/activities')}
-            className="mb-4 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2"
-          >
-            ← Back to Activities
-          </button>
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => router.push('/activities')}
+              className="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2"
+            >
+              ← Back to Activities
+            </button>
+            <button
+              onClick={() => router.push('/admin/login')}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg shadow-md hover:shadow-lg transition flex items-center gap-2"
+            >
+              🔄 Switch Admin
+            </button>
+          </div>
 
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Edit Activities & Video Links
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              🔒 Admin: Edit Activities & Video Links
             </h1>
             <p className="text-gray-600 mt-2">
-              Update activity information and video tutorial links
+              Admin-only access to update activity information and video tutorial links
             </p>
+            <div className="mt-2 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold inline-block">
+              Admin Access Required
+            </div>
           </div>
         </div>
 

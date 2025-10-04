@@ -89,7 +89,15 @@ export async function PUT(request) {
     await connectDB();
     
     const body = await request.json();
-    const { activityId, updates } = body;
+    const { activityId, updates, userRole } = body;
+    
+    // Check if user is admin
+    if (userRole !== 'admin') {
+      return NextResponse.json(
+        { error: 'Access denied. Admin privileges required.' },
+        { status: 403 }
+      );
+    }
     
     if (!activityId) {
       return NextResponse.json(

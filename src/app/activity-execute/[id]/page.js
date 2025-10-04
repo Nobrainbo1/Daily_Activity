@@ -71,7 +71,7 @@ export default function ActivityExecute() {
         body: JSON.stringify({
           userActivityId: userActivity._id,
           updates: {
-            status: 'pending',
+            status: 'in-progress',
             'progress.startedAt': new Date(),
             'progress.totalSteps': activity.steps?.length || 0,
             'progress.currentStep': 0

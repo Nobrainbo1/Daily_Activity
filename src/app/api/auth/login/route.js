@@ -39,7 +39,8 @@ export async function POST(request) {
       name: user.name,
       username: user.username,
       streak: user.streak,
-      badges: user.badges
+      badges: user.badges,
+      role: user.role
     };
     
     return NextResponse.json({
