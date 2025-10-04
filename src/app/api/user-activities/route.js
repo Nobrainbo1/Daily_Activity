@@ -11,7 +11,25 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const activityId = searchParams.get('activityId');
+    const id = searchParams.get('id'); // userActivity ID
     const stats = searchParams.get('stats');
+
+    // If fetching by userActivity ID (for activity-execute page)
+    if (id) {
+      console.log('Fetching user activity by ID:', id);
+      const userActivity = await UserActivity.findById(id).populate('activityId');
+      
+      if (!userActivity) {
+        return NextResponse.json(
+          { error: 'User activity not found' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        userActivities: [userActivity]
+      });
+    }
 
     if (!userId) {
       return NextResponse.json(
@@ -30,23 +48,8 @@ export async function GET(request) {
 
       console.log('Found user activities:', userActivities.length);
 
-      // Transform the data to have activity data at the root level
-      const transformedActivities = userActivities.map(ua => {
-        console.log('Processing user activity:', ua._id, 'status:', ua.status);
-        return {
-          _id: ua._id,
-          userId: ua.userId,
-          activity: ua.activityId,
-          status: ua.status,
-          scheduledTime: ua.scheduledTime,
-          notes: ua.notes,
-          completedAt: ua.completedAt,
-          createdAt: ua.createdAt
-        };
-      });
-
       return NextResponse.json({
-        userActivities: transformedActivities
+        userActivities: userActivities
       });
     }
 
@@ -213,11 +216,11 @@ export async function PUT(request) {
   }
 }
 
-export async function DELETE(request) {
+export async function PATCH(request) {
   try {
     await connectDB();
     
-    const { userActivityId } = await request.json();
+    const { userActivityId, updates } = await request.json();
 
     if (!userActivityId) {
       return NextResponse.json(
@@ -226,13 +229,98 @@ export async function DELETE(request) {
       );
     }
 
-    await UserActivity.findByIdAndDelete(userActivityId);
+    const userActivity = await UserActivity.findById(userActivityId);
+    if (!userActivity) {
+      return NextResponse.json(
+        { error: 'User activity not found' },
+        { status: 404 }
+      );
+    }
+
+    // Apply updates
+    Object.keys(updates).forEach(key => {
+      if (key.includes('.')) {
+        // Handle nested properties like 'progress.currentStep'
+        const keys = key.split('.');
+        let obj = userActivity;
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!obj[keys[i]]) obj[keys[i]] = {};
+          obj = obj[keys[i]];
+        }
+        obj[keys[keys.length - 1]] = updates[key];
+      } else {
+        userActivity[key] = updates[key];
+      }
+    });
     
-    return NextResponse.json({ message: 'Activity removed from your list' });
+    await userActivity.save();
+    
+    // Update user streak if activity completed
+    if (updates.status === 'completed') {
+      await updateUserStreak(userActivity.userId);
+    }
+    
+    return NextResponse.json({ 
+      message: 'Activity updated successfully',
+      userActivity 
+    });
+  } catch (error) {
+    console.error('PATCH /api/user-activities error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    await connectDB();
+    
+    // Support both query parameter and body
+    const { searchParams } = new URL(request.url);
+    const idFromQuery = searchParams.get('id');
+    
+    let userActivityId = idFromQuery;
+    
+    // If not in query, try to get from body
+    if (!userActivityId) {
+      try {
+        const body = await request.json();
+        userActivityId = body.userActivityId;
+      } catch (e) {
+        // Body parsing failed, which is okay if we have query param
+      }
+    }
+
+    console.log('DELETE user activity with ID:', userActivityId);
+
+    if (!userActivityId) {
+      return NextResponse.json(
+        { error: 'User Activity ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const deleted = await UserActivity.findByIdAndDelete(userActivityId);
+    
+    if (!deleted) {
+      return NextResponse.json(
+        { error: 'User activity not found' },
+        { status: 404 }
+      );
+    }
+
+    console.log('Successfully deleted user activity:', userActivityId);
+    
+    return NextResponse.json({ 
+      message: 'Activity removed from your list',
+      deletedId: userActivityId 
+    });
   } catch (error) {
     console.error('DELETE /api/user-activities error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }

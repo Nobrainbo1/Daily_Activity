@@ -79,17 +79,11 @@ export default function UserActivity() {
 
   const fetchUserActivities = async (userId) => {
     try {
-      console.log('Fetching user activities for userId:', userId);
       const response = await fetch(`/api/user-activities?userId=${userId}`);
       const data = await response.json();
       
-      console.log('User activities response:', data);
-      
       if (response.ok) {
         const activities = data.userActivities || [];
-        console.log('Number of activities:', activities.length);
-        console.log('Activities data:', activities);
-        
         setUserActivities(activities);
         const newStats = calculateStats(activities);
         setStats(newStats);
@@ -111,30 +105,24 @@ export default function UserActivity() {
   };
 
   const removeActivity = async (userActivityId) => {
-    if (!confirm('Are you sure you want to remove this activity from your list?')) {
+    if (!confirm('Are you sure you want to remove this activity?')) {
       return;
     }
 
     try {
-      console.log('Deleting user activity:', userActivityId);
       const response = await fetch(`/api/user-activities?id=${userActivityId}`, {
         method: 'DELETE',
       });
 
-      const data = await response.json();
-      console.log('Delete response:', data);
-
       if (response.ok) {
-        alert('✅ Activity removed successfully!');
-        // Refresh the list
+        alert('Activity removed successfully!');
         fetchUserActivities(user._id);
       } else {
-        console.error('Delete failed:', data);
-        alert(`Failed to remove activity: ${data.error || 'Unknown error'}`);
+        alert('Failed to remove activity');
       }
     } catch (error) {
       console.error('Error removing activity:', error);
-      alert('Error removing activity. Please try again.');
+      alert('Error removing activity');
     }
   };
 

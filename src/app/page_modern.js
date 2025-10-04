@@ -40,9 +40,6 @@ export default function Home() {
         ? { username: formData.username, password: formData.password }
         : { username: formData.username, password: formData.password, name: formData.name };
 
-      console.log('Attempting to fetch:', endpoint);
-      console.log('Payload:', payload);
-
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -51,15 +48,7 @@ export default function Home() {
         body: JSON.stringify(payload),
       });
 
-      console.log('Response status:', response.status);
-
-      if (!response.ok && response.status === 404) {
-        setError('API endpoint not found. Please check server configuration.');
-        return;
-      }
-
       const data = await response.json();
-      console.log('Response data:', data);
 
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
@@ -68,12 +57,8 @@ export default function Home() {
         setError(data.error || 'Authentication failed');
       }
     } catch (err) {
-      console.error('Auth error details:', err);
-      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        setError('Cannot connect to server. Please check if the server is running on the correct port.');
-      } else {
-        setError(`Network error: ${err.message}`);
-      }
+      setError('Network error. Please try again.');
+      console.error('Auth error:', err);
     } finally {
       setLoading(false);
     }

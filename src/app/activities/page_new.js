@@ -13,8 +13,113 @@ export default function Activities() {
 
   const categories = ['All', 'Creativity', 'Mindfulness', 'Productivity', 'Communication', 'Fitness', 'Learning', 'Social', 'Self-Care'];
 
-  // No fallback activities - user must seed database first
-  // Run: node seedActivitiesWithSteps.js
+  const fallbackActivities = [
+    {
+      _id: '1',
+      title: 'Morning Meditation',
+      description: 'Start your day with mindfulness and inner peace. Connect with your breath and set positive intentions.',
+      category: 'Mindfulness',
+      difficulty: 'Easy',
+      estimatedTime: 12,
+      instructions: ['Find a quiet, comfortable space', 'Sit with back straight', 'Close your eyes gently', 'Focus on your breathing'],
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Find Your Space',
+          description: 'Choose a quiet, comfortable location where you won\'t be disturbed.',
+          tips: ['Use a cushion or chair for comfort', 'Ensure good ventilation', 'Dim the lights if possible'],
+          videoUrl: 'https://youtu.be/dhFt7eURm78?si=Q7EQ7t0oTS-Z1Jto',
+          estimatedDuration: 3
+        },
+        {
+          stepNumber: 2,
+          title: 'Proper Posture',
+          description: 'Sit with your back straight, shoulders relaxed, and hands resting comfortably.',
+          tips: ['Keep spine aligned', 'Relax your shoulders', 'Rest hands on knees or lap'],
+          videoUrl: 'https://youtu.be/OyK0oE5rwFY?si=gB2yU0lRdH-jO6uC',
+          estimatedDuration: 4
+        },
+        {
+          stepNumber: 3,
+          title: 'Breathing Focus',
+          description: 'Close your eyes and bring awareness to your natural breath.',
+          tips: ['Don\'t force your breathing', 'Notice the rhythm naturally', 'Count breaths if helpful'],
+          videoUrl: 'https://youtu.be/RiMb2Bw4Ae8?si=29d0w4nalDOfcRRb',
+          estimatedDuration: 4
+        }
+      ]
+    },
+    {
+      _id: '2',
+      title: 'Creative Journaling',
+      description: 'Express your thoughts, feelings, and ideas through free-form writing and creative expression.',
+      category: 'Creativity',
+      difficulty: 'Easy',
+      estimatedTime: 18,
+      instructions: ['Get your journal', 'Set a timer', 'Write freely', 'Don\'t judge yourself'],
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Prepare Your Materials',
+          description: 'Gather your journal, pen, and any art supplies you want to use.',
+          tips: ['Use a notebook you love', 'Pick your favorite pen', 'Add stickers or colors'],
+          videoUrl: 'https://youtu.be/njstk6xlrh0?si=i1VPfpghZdGT3H_7',
+          estimatedDuration: 7
+        },
+        {
+          stepNumber: 2,
+          title: 'Set Your Intention',
+          description: 'Take a moment to decide what you want to explore or express today.',
+          tips: ['Choose a theme or topic', 'Or let it flow naturally', 'There\'s no wrong choice'],
+          videoUrl: 'https://youtu.be/QG_WlhxynHo?si=xEUKfd_171hJmGfj',
+          estimatedDuration: 7
+        },
+        {
+          stepNumber: 3,
+          title: 'Free Writing',
+          description: 'Write continuously for 15 minutes without stopping or judging.',
+          tips: ['Don\'t worry about grammar', 'Let thoughts flow freely', 'Keep pen moving'],
+          videoUrl: 'https://youtu.be/gtcfnDG_0M0?si=SzFmSxke619jGxlz',
+          estimatedDuration: 3
+        }
+      ]
+    },
+    {
+      _id: '3',
+      title: 'HIIT Workout',
+      description: 'High-intensity interval training to boost your fitness, energy, and metabolism.',
+      category: 'Fitness',
+      difficulty: 'Medium',
+      estimatedTime: 32,
+      instructions: ['Warm up', 'High-intensity intervals', 'Rest periods', 'Cool down'],
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Dynamic Warm-Up',
+          description: 'Prepare your body with light cardio and dynamic stretches.',
+          tips: ['Start with light jogging in place', 'Do arm circles and leg swings', 'Gradually increase intensity'],
+          videoUrl: 'https://youtu.be/LKSC_KujZ4g?si=4s9y7m1eljZwmk2v',
+          estimatedDuration: 6
+        },
+        {
+          stepNumber: 2,
+          title: 'High-Intensity Intervals',
+          description: 'Perform 30 seconds of intense exercise followed by 30 seconds rest. Repeat 4 rounds.',
+          tips: ['Push yourself during work periods', 'Maintain good form', 'Breathe consistently'],
+          videoUrl: 'https://youtu.be/IU913YMDXCk?si=9nRrmYgI9nkAlSK8',
+          estimatedDuration: 15
+        },
+        {
+          stepNumber: 3,
+          title: 'Cool Down & Stretch',
+          description: 'Gradually lower your heart rate and stretch major muscle groups.',
+          tips: ['Walk slowly for 2-3 minutes', 'Hold each stretch for 30 seconds', 'Focus on deep breathing'],
+          videoUrl: 'https://youtu.be/3N_8ioZ4jdk?si=jlW0D-C0eExP6CEV',
+          estimatedDuration: 10
+        }
+      ]
+    }
+  ];
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -42,12 +147,11 @@ export default function Activities() {
       if (data.activities && Array.isArray(data.activities) && data.activities.length > 0) {
         setActivities(data.activities);
       } else {
-        console.log('No activities found in database. Please run: node seedActivitiesWithSteps.js');
-        setActivities([]);
+        setActivities(fallbackActivities);
       }
     } catch (err) {
       console.error('Error fetching activities:', err);
-      setActivities([]);
+      setActivities(fallbackActivities);
     } finally {
       setLoading(false);
     }
@@ -83,11 +187,8 @@ export default function Activities() {
       const data = await response.json();
 
       if (response.ok) {
-        // Use the userActivity ID from the response (not the activity ID)
-        const userActivityId = data.userActivity?._id || data._id;
         alert(`✓ "${activity.title}" added to your activities!`);
-        // Navigate to the activity execution page with the userActivity ID
-        router.push(`/activity-execute/${userActivityId}`);
+        router.push(`/activity-execute/${activity._id}`);
       } else {
         alert(data.error || 'Failed to add activity');
       }
@@ -169,12 +270,6 @@ export default function Activities() {
                   className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
                 >
                   📊 My Activities
-                </button>
-                <button
-                  onClick={() => router.push('/settings')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
-                >
-                  ⚙️ Settings
                 </button>
                 <button
                   onClick={handleLogout}

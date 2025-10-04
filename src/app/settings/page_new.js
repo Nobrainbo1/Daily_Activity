@@ -348,28 +348,6 @@ export default function Settings() {
             </form>
           </div>
 
-          {/* Admin Tools */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border-2 border-purple-200 mb-6">
-            <h2 className="text-2xl font-bold text-purple-600 mb-6 flex items-center gap-2">
-              <span>⚙️</span> Admin Tools
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <div>
-                  <h3 className="font-bold text-purple-800">Edit Activities & Videos</h3>
-                  <p className="text-sm text-purple-600">Update activity details and video tutorial links</p>
-                </div>
-                <button
-                  onClick={() => router.push('/admin/edit-activities')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
-                >
-                  ✏️ Edit
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* Danger Zone */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border-2 border-red-200">
             <h2 className="text-2xl font-bold text-red-600 mb-6 flex items-center gap-2">

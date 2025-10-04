@@ -62,6 +62,31 @@ const UserActivitySchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    // Progress tracking for step-by-step activities
+    progress: {
+      currentStep: {
+        type: Number,
+        default: 0
+      },
+      completedSteps: [{
+        stepNumber: Number,
+        completedAt: Date
+      }],
+      totalSteps: {
+        type: Number,
+        default: 0
+      },
+      percentComplete: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 100
+      },
+      startedAt: {
+        type: Date,
+        default: null
+      }
+    },
   },
   {
     timestamps: true,

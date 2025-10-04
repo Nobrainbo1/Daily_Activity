@@ -52,6 +52,36 @@ const ActivitySchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    // New step-by-step structure with tips and videos
+    steps: [{
+      stepNumber: {
+        type: Number,
+        required: true
+      },
+      title: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      description: {
+        type: String,
+        required: true,
+        trim: true
+      },
+      tips: [{
+        type: String,
+        trim: true
+      }],
+      videoUrl: {
+        type: String,
+        trim: true,
+        default: null
+      },
+      estimatedDuration: {
+        type: Number, // in minutes
+        default: 5
+      }
+    }],
     materials: {
       type: [String],
       default: [],
