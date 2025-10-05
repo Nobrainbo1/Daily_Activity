@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function EditActivities() {
   const [activities, setActivities] = useState([]);
@@ -32,7 +33,7 @@ export default function EditActivities() {
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch('/api/activities');
+      const response = await fetch(apiUrl('/api/activities'));
       const data = await response.json();
       if (data.activities) {
         setActivities(data.activities);
@@ -138,7 +139,7 @@ export default function EditActivities() {
 
   const handleSaveActivity = async () => {
     try {
-      const response = await fetch('/api/activities', {
+      const response = await fetch(apiUrl('/api/activities'), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

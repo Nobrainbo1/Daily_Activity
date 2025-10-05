@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function UserActivity() {
   const [userActivities, setUserActivities] = useState([]);
@@ -85,7 +86,7 @@ export default function UserActivity() {
   const fetchUserActivities = async (userId) => {
     try {
       console.log('Fetching user activities for userId:', userId);
-      const response = await fetch(`/api/user-activities?userId=${userId}`);
+      const response = await fetch(apiUrl(`/api/user-activities?userId=${userId}`));
       const data = await response.json();
       
       console.log('User activities response:', data);
@@ -130,7 +131,7 @@ export default function UserActivity() {
 
     try {
       console.log('Deleting user activity:', userActivityId);
-      const response = await fetch(`/api/user-activities?id=${userActivityId}`, {
+      const response = await fetch(apiUrl(`/api/user-activities?id=${userActivityId}`), {
         method: 'DELETE',
       });
 
@@ -157,7 +158,7 @@ export default function UserActivity() {
     }
 
     try {
-      const response = await fetch('/api/user-activities', {
+      const response = await fetch(apiUrl('/api/user-activities'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +183,7 @@ export default function UserActivity() {
 
   const resumeSkippedActivity = async (userActivityId, activityId) => {
     try {
-      const response = await fetch('/api/user-activities', {
+      const response = await fetch(apiUrl('/api/user-activities'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

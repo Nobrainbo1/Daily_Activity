@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true);
@@ -43,7 +44,7 @@ export default function Home() {
       console.log('Attempting to fetch:', endpoint);
       console.log('Payload:', payload);
 
-      const response = await fetch(endpoint, {
+      const response = await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

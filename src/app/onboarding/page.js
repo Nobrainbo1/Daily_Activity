@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function Onboarding() {
         '2+ hours': 120
       };
       
-      const response = await fetch('/api/users/update', {
+      const response = await fetch(apiUrl('/api/users/update'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

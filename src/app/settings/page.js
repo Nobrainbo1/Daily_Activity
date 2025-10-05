@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -61,7 +62,7 @@ export default function Settings() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/users/update', {
+      const response = await fetch(apiUrl('/api/users/update'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +129,7 @@ export default function Settings() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/users/update-password', {
+      const response = await fetch(apiUrl('/api/users/update-password'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ export default function Settings() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/users/delete', {
+      const response = await fetch(apiUrl('/api/users/delete'), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',

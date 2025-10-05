@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function Activities() {
   const [activities, setActivities] = useState([]);
@@ -34,7 +35,7 @@ export default function Activities() {
 
   const fetchUserActivities = async (userId) => {
     try {
-      const response = await fetch(`/api/user-activities?userId=${userId}`, {
+      const response = await fetch(apiUrl(`/api/user-activities?userId=${userId}`), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -63,7 +64,7 @@ export default function Activities() {
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch('/api/activities', {
+      const response = await fetch(apiUrl('/api/activities'), {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -103,7 +104,7 @@ export default function Activities() {
     }
 
     try {
-      const response = await fetch('/api/user-activities', {
+      const response = await fetch(apiUrl('/api/user-activities'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

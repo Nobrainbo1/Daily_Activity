@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function ActivityExecute() {
   const params = useParams();
@@ -30,7 +31,7 @@ export default function ActivityExecute() {
     try {
       // params.id is the userActivity ID, not the activity ID
       // Fetch user activity by ID (which will be populated with activity details)
-      const userActRes = await fetch(`/api/user-activities?id=${params.id}`);
+      const userActRes = await fetch(apiUrl(`/api/user-activities?id=${params.id}`));
       const userActData = await userActRes.json();
       
       console.log('User activity response:', userActData);
@@ -65,7 +66,7 @@ export default function ActivityExecute() {
 
   const handleStart = async () => {
     try {
-      const response = await fetch('/api/user-activities', {
+      const response = await fetch(apiUrl('/api/user-activities'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -129,7 +130,7 @@ export default function ActivityExecute() {
         updates.completedAt = null;
       }
 
-      await fetch('/api/user-activities', {
+      await fetch(apiUrl('/api/user-activities'), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from '@/lib/apiClient';
 
 export default function AddActivity() {
   const router = useRouter();
@@ -132,7 +133,7 @@ export default function AddActivity() {
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch('/api/activities', {
+      const response = await fetch(apiUrl('/api/activities'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
