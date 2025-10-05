@@ -4,7 +4,14 @@ A web application that helps users discover productive ways to spend their free 
 
 ## Live Demo
 
-🔗 [View Live Application](#) _(Coming soon)_
+🔗 [View Live Application](https://wad-6510249.indonesiacentral.cloudapp.azure.com/Daily_Activity)
+
+User account to test
+
+- Nomal user
+  - MJ8888, MJ8822
+- Admin user
+  - admin, admin123
 
 ## Team Members
 
@@ -22,9 +29,7 @@ Daily Activity helps users overcome decision fatigue when choosing how to spend 
 - Activity browsing with 8 different categories
 - Step-by-step activity execution with progress tracking
 - User dashboard with activity status tracking
-- Duplicate prevention system with restart capability
 - Skip functionality for flexible activity management
-- Responsive design with modern UI
 
 ### Tech Stack
 
@@ -191,3 +196,5 @@ Tracks user interactions with activities.
 - `POST /api/seed` - Seed database with initial data
 
 ## How to Use the App
+
+https://youtu.be/z3xd8iDyVZo
