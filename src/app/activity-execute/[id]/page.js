@@ -101,6 +101,7 @@ export default function ActivityExecute() {
 
     const percentComplete = Math.round((newCompleted.size / (activity.steps?.length || 1)) * 100);
     const allComplete = newCompleted.size === activity.steps?.length;
+    const noneComplete = newCompleted.size === 0;
 
     try {
       const updates = {
@@ -113,10 +114,19 @@ export default function ActivityExecute() {
       };
 
       if (allComplete) {
+        // All steps completed - mark activity as completed
         updates.status = 'completed';
         updates.completedAt = new Date();
         setShowCelebration(true);
         setTimeout(() => setShowCelebration(false), 3000);
+      } else if (noneComplete && userActivity.progress?.startedAt) {
+        // All steps un-completed but activity was started - reset to in-progress
+        updates.status = 'in-progress';
+        updates.completedAt = null;
+      } else if (userActivity.status === 'completed' && !allComplete) {
+        // Activity was completed but user un-completed a step - revert to in-progress
+        updates.status = 'in-progress';
+        updates.completedAt = null;
       }
 
       await fetch('/api/user-activities', {
@@ -127,6 +137,15 @@ export default function ActivityExecute() {
           updates
         })
       });
+
+      // Update local userActivity state to reflect status change
+      if (updates.status) {
+        setUserActivity(prev => ({
+          ...prev,
+          status: updates.status,
+          completedAt: updates.completedAt
+        }));
+      }
     } catch (err) {
       console.error('Error updating progress:', err);
     }
@@ -317,11 +336,32 @@ export default function ActivityExecute() {
                                 💡 Tips:
                               </h4>
                               <ul className="list-disc list-inside space-y-1">
-                                {step.tips.map((tip, tipIndex) => (
-                                  <li key={tipIndex} className="text-yellow-900 text-sm">
-                                    {tip}
-                                  </li>
-                                ))}
+                                {step.tips.map((tip, tipIndex) => {
+                                  // Check if tip contains a URL
+                                  const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                  const parts = tip.split(urlRegex);
+                                  
+                                  return (
+                                    <li key={tipIndex} className="text-yellow-900 text-sm">
+                                      {parts.map((part, partIndex) => {
+                                        if (part.match(urlRegex)) {
+                                          return (
+                                            <a
+                                              key={partIndex}
+                                              href={part}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:underline font-medium"
+                                            >
+                                              {part}
+                                            </a>
+                                          );
+                                        }
+                                        return <span key={partIndex}>{part}</span>;
+                                      })}
+                                    </li>
+                                  );
+                                })}
                               </ul>
                             </div>
                           )}
@@ -335,7 +375,6 @@ export default function ActivityExecute() {
                                 rel="noopener noreferrer"
                                 className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r ${getCategoryGradient(activity.category)} text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition`}
                               >
-                                <span>🎥</span>
                                 <span className="font-semibold">Watch Tutorial Video</span>
                                 <span>→</span>
                               </a>

@@ -52,13 +52,20 @@ export default function UserActivity() {
         total: 0,
         inProgress: 0,
         completed: 0,
+        skipped: 0,
         averageProgress: 0
       };
     }
 
     const total = activities.length;
     const completed = activities.filter(a => a.status === 'completed').length;
-    const inProgress = activities.filter(a => a.status === 'in-progress').length;
+    const skipped = activities.filter(a => a.status === 'skipped').length;
+    
+    // Fix: Count activities that are actually in progress (have started but not completed)
+    const inProgress = activities.filter(a => {
+      return a.status === 'in-progress' || 
+             (a.progress && a.progress.startedAt && a.status !== 'completed' && a.status !== 'skipped');
+    }).length;
 
     // Calculate average progress
     const totalProgress = activities.reduce((sum, activity) => {
@@ -70,6 +77,7 @@ export default function UserActivity() {
       total,
       inProgress,
       completed,
+      skipped,
       averageProgress
     };
   };
@@ -87,8 +95,16 @@ export default function UserActivity() {
         console.log('Number of activities:', activities.length);
         console.log('Activities data:', activities);
         
-        setUserActivities(activities);
-        const newStats = calculateStats(activities);
+        // Filter out activities where activityId is null (deleted activities)
+        const validActivities = activities.filter(ua => ua.activityId != null);
+        console.log('Valid activities (with activityId):', validActivities.length);
+        
+        if (validActivities.length !== activities.length) {
+          console.warn(`Found ${activities.length - validActivities.length} activities with missing activityId (likely deleted activities)`);
+        }
+        
+        setUserActivities(validActivities);
+        const newStats = calculateStats(validActivities);
         setStats(newStats);
       } else {
         console.error('Error fetching user activities:', data);
@@ -135,6 +151,60 @@ export default function UserActivity() {
     }
   };
 
+  const skipActivity = async (userActivityId) => {
+    if (!confirm('Skip this activity for now? You can come back to it later.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/user-activities', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userActivityId,
+          updates: {
+            status: 'skipped'
+          }
+        })
+      });
+
+      if (response.ok) {
+        alert('⏭️ Activity skipped!');
+        fetchUserActivities(user._id);
+      } else {
+        alert('Failed to skip activity. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error skipping activity:', error);
+      alert('Error skipping activity. Please try again.');
+    }
+  };
+
+  const resumeSkippedActivity = async (userActivityId, activityId) => {
+    try {
+      const response = await fetch('/api/user-activities', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userActivityId,
+          updates: {
+            status: 'added'
+          }
+        })
+      });
+
+      if (response.ok) {
+        // Navigate to the execution page after status update
+        router.push(`/activity-execute/${userActivityId}`);
+      } else {
+        alert('Failed to resume activity. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error resuming activity:', error);
+      alert('Error resuming activity. Please try again.');
+    }
+  };
+
   const getCategoryGradient = (category) => {
     const gradients = {
       Creativity: 'from-purple-500 via-pink-500 to-rose-500',
@@ -149,13 +219,37 @@ export default function UserActivity() {
     return gradients[category] || 'from-blue-500 via-purple-500 to-pink-500';
   };
 
+  const getDifficultyColor = (difficulty) => {
+    const colors = {
+      Easy: 'bg-green-100 text-green-800',
+      Medium: 'bg-yellow-100 text-yellow-800',
+      Hard: 'bg-red-100 text-red-800',
+    };
+    return colors[difficulty] || 'bg-gray-100 text-gray-800';
+  };
+
   const getStatusBadge = (status, progress) => {
     if (status === 'completed') {
-      return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">✅ Completed</span>;
-    } else if (status === 'in-progress') {
-      return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">🔄 In Progress ({progress?.percentComplete || 0}%)</span>;
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-lg font-semibold">
+          <span className="text-lg">✅</span>
+          <span>Completed</span>
+        </div>
+      );
+    } else if (status === 'in-progress' || (progress && progress.startedAt)) {
+      const percent = progress?.percentComplete || 0;
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-semibold">
+          <span>In Progress ({percent}%)</span>
+        </div>
+      );
     } else {
-      return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">⏸️ Not Started</span>;
+      return (
+        <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold">
+          <span className="text-lg">⏸️</span>
+          <span>Not Started</span>
+        </div>
+      );
     }
   };
 
@@ -193,25 +287,24 @@ export default function UserActivity() {
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push('/activities')}
-                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                 >
                   ➕ Add Activities
                 </button>
                 <button
                   onClick={() => router.push('/settings')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                 >
                   ⚙️ Settings
                 </button>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('user');
-                    router.push('/');
-                  }}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                >
-                  Logout
-                </button>
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => router.push('/admin/edit-activities')}
+                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
+                  >
+                    Admin Edit
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -224,58 +317,75 @@ export default function UserActivity() {
             <h2 className="text-2xl font-bold text-gray-800 mb-4">📊 Overall Progress</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Activities */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm font-semibold">Total Activities</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">{stats.total}</p>
+                    <p className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Total Activities</p>
+                    <p className="text-4xl font-bold text-blue-600 mt-2">{stats.total}</p>
+                    <p className="text-xs text-gray-500 mt-1">Activities in your list</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-2xl">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-3xl shadow-lg">
                     📚
                   </div>
                 </div>
               </div>
 
-              {/* Completed */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-semibold">Completed</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">{stats.completed}</p>
-                  </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-2xl">
-                    ✅
-                  </div>
-                </div>
-              </div>
-
               {/* In Progress */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm font-semibold">In Progress</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">{stats.inProgress}</p>
+                    <p className="text-gray-600 text-sm font-semibold uppercase tracking-wide">In Progress</p>
+                    <p className="text-4xl font-bold text-orange-600 mt-2">{stats.inProgress}</p>
+                    <p className="text-xs text-gray-500 mt-1">Currently working on</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-2xl">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center text-3xl shadow-lg">
                     🔄
                   </div>
                 </div>
               </div>
 
-
-
-              {/* Average Progress */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
+              {/* Completed */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-600 text-sm font-semibold">Avg Progress</p>
-                    <p className="text-3xl font-bold text-orange-600 mt-2">{stats.averageProgress}%</p>
+                    <p className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Completed</p>
+                    <p className="text-4xl font-bold text-green-600 mt-2">{stats.completed}</p>
+                    <p className="text-xs text-gray-500 mt-1">Successfully finished</p>
                   </div>
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-2xl">
-                    📈
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-3xl shadow-lg">
+                    ✅
                   </div>
                 </div>
               </div>
+
+              {/* Skipped */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 hover:shadow-xl transition">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-semibold uppercase tracking-wide">Skipped</p>
+                    <p className="text-4xl font-bold text-indigo-600 mt-2">{stats.skipped}</p>
+                    <p className="text-xs text-gray-500 mt-1">Passed for now</p>
+                  </div>
+                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-full flex items-center justify-center text-3xl shadow-lg">
+                    ⏭️
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Average Progress Bar */}
+            <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold text-gray-800">Average Completion</h3>
+                <span className="text-2xl font-bold text-purple-600">{stats.averageProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 transition-all duration-500 rounded-full"
+                  style={{ width: `${stats.averageProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Overall progress across all activities</p>
             </div>
           </div>
 
@@ -292,13 +402,13 @@ export default function UserActivity() {
                 <p className="text-gray-600 mb-6">Start adding activities to track your progress!</p>
                 <button
                   onClick={() => router.push('/activities')}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                 >
                   Browse Activities
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-auto">
                 {userActivities.map((userActivity) => {
                   const activity = userActivity.activityId;
                   if (!activity) return null;
@@ -306,91 +416,122 @@ export default function UserActivity() {
                   return (
                     <div
                       key={userActivity._id}
-                      className="group transform transition-all duration-300 hover:scale-102"
+                      className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col"
                     >
-                      <div className={`bg-gradient-to-br ${getCategoryGradient(activity.category)} p-0.5 rounded-2xl shadow-lg hover:shadow-2xl transition h-full`}>
-                        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 h-full flex flex-col">
-                          {/* Category Badge & Status */}
-                          <div className="flex justify-between items-start mb-4">
-                            <span className={`inline-block px-4 py-1 rounded-full text-sm font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)}`}>
-                              {activity.category}
-                            </span>
-                            {getStatusBadge(userActivity.status, userActivity.progress)}
+                      {/* Header with gradient */}
+                      <div className={`bg-gradient-to-r ${getCategoryGradient(activity.category)} p-4`}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-white font-bold text-sm uppercase tracking-wide">
+                            {activity.category}
+                          </span>
+                          {getStatusBadge(userActivity.status, userActivity.progress)}
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-6 flex flex-col flex-grow">
+                        {/* Title */}
+                        <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                          {activity.title}
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-gray-600 mb-4 leading-relaxed line-clamp-2">
+                          {activity.description}
+                        </p>
+
+                        {/* Progress Bar */}
+                        {userActivity.progress && userActivity.progress.percentComplete > 0 && (
+                          <div className="mb-4">
+                            <div className="flex justify-between text-sm text-gray-700 mb-2 font-medium">
+                              <span>Progress</span>
+                              <span>{userActivity.progress.percentComplete || 0}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className={`h-full bg-gradient-to-r ${getCategoryGradient(activity.category)} transition-all duration-500`}
+                                style={{ width: `${userActivity.progress.percentComplete || 0}%` }}
+                              ></div>
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-500 mt-2">
+                              <span>
+                                {userActivity.progress.completedSteps?.length || 0} of {activity.steps?.length || 0} steps
+                              </span>
+                              {userActivity.progress.startedAt && (
+                                <span>
+                                  Started {new Date(userActivity.progress.startedAt).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
                           </div>
+                        )}
 
-                          {/* Title */}
-                          <h3 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition">
-                            {activity.title}
-                          </h3>
-
-                          {/* Description */}
-                          <p className="text-gray-600 mb-4 leading-relaxed flex-1">
-                            {activity.description}
-                          </p>
-
-                          {/* Progress Bar */}
-                          {userActivity.progress && (
-                            <div className="mb-4">
-                              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                                <span>Progress</span>
-                                <span className="font-semibold">{userActivity.progress.percentComplete || 0}%</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                                <div
-                                  className={`h-full bg-gradient-to-r ${getCategoryGradient(activity.category)} transition-all duration-500`}
-                                  style={{ width: `${userActivity.progress.percentComplete || 0}%` }}
-                                ></div>
-                              </div>
-                              <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>Step {userActivity.progress.currentStep || 1} of {userActivity.progress.totalSteps || activity.steps?.length || 0}</span>
-                                <span>{userActivity.progress.completedSteps?.length || 0} steps completed</span>
-                              </div>
+                        {/* Meta Info */}
+                        <div className="flex flex-wrap gap-2 mb-4 pt-2 border-t border-gray-100">
+                          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${getDifficultyColor(activity.difficulty)}`}>
+                            {activity.difficulty}
+                          </span>
+                          <div className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium">
+                            <span>⏱️</span>
+                            <span>{activity.estimatedTime} min</span>
+                          </div>
+                          {activity.steps && activity.steps.length > 0 && (
+                            <div className="flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-sm font-medium">
+                              <span>📋</span>
+                              <span>{activity.steps.length} steps</span>
                             </div>
                           )}
+                        </div>
 
-                          {/* Meta Info */}
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">
-                              {activity.difficulty}
-                            </span>
-                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold flex items-center">
-                              ⏱️ {activity.estimatedTime} min
-                            </span>
-                            {activity.steps && activity.steps.length > 0 && (
-                              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-semibold flex items-center">
-                                📋 {activity.steps.length} steps
-                              </span>
-                            )}
-                          </div>
+                        {/* Spacer to push buttons to bottom */}
+                        <div className="flex-grow"></div>
 
-                          {/* Action Buttons */}
-                          <div className="flex gap-2">
-                            {userActivity.status !== 'completed' && (
-                              <button
-                                onClick={() => startActivity(userActivity._id, activity._id)}
-                                className={`flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)} hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
-                              >
-                                {userActivity.status === 'in-progress' ? '▶️ Continue' : '🚀 Start Activity'}
-                              </button>
-                            )}
-                            
-                            {userActivity.status === 'completed' && (
-                              <button
-                                onClick={() => startActivity(userActivity._id, activity._id)}
-                                className="flex-1 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                              >
-                                ✅ View Completed
-                              </button>
-                            )}
-
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 mt-4">
+                          {userActivity.status !== 'completed' && userActivity.status !== 'skipped' && (
                             <button
-                              onClick={() => removeActivity(userActivity._id)}
-                              className="px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                              title="Remove activity"
+                              onClick={() => startActivity(userActivity._id, activity._id)}
+                              className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg transform hover:scale-102 transition-all duration-300"
                             >
-                              🗑️
+                              {userActivity.status === 'in-progress' || (userActivity.progress && userActivity.progress.startedAt) ? 'Continue' : '🚀 Start'}
                             </button>
-                          </div>
+                          )}
+                          
+                          {userActivity.status === 'completed' && (
+                            <button
+                              onClick={() => startActivity(userActivity._id, activity._id)}
+                              className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-lg transform hover:scale-102 transition-all duration-300"
+                            >
+                              ✅ View Details
+                            </button>
+                          )}
+
+                          {userActivity.status === 'skipped' && (
+                            <button
+                              onClick={() => resumeSkippedActivity(userActivity._id, activity._id)}
+                              className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:shadow-lg transform hover:scale-102 transition-all duration-300"
+                            >
+                              Resume
+                            </button>
+                          )}
+
+                          {userActivity.status !== 'completed' && userActivity.status !== 'skipped' && (
+                            <button
+                              onClick={() => skipActivity(userActivity._id)}
+                              className="px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:shadow-lg transform hover:scale-102 transition-all duration-300"
+                              title="Skip activity"
+                            >
+                              ⏭️
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => removeActivity(userActivity._id)}
+                            className="px-4 py-3 rounded-xl font-bold text-white bg-gradient-to-r from-red-500 to-rose-500 hover:shadow-lg transform hover:scale-102 transition-all duration-300"
+                            title="Remove activity"
+                          >
+                            🗑️
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -429,3 +570,4 @@ export default function UserActivity() {
     </div>
   );
 }
+

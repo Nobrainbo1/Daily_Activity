@@ -8,7 +8,10 @@ export default function Settings() {
     name: '',
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    skillGoals: [],
+    difficultyPreference: 'Medium',
+    availableTime: 30
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,7 +30,10 @@ export default function Settings() {
       setUser(parsedUser);
       setFormData(prev => ({
         ...prev,
-        name: parsedUser.name || ''
+        name: parsedUser.name || '',
+        skillGoals: parsedUser.preferences?.skillGoals || [],
+        difficultyPreference: parsedUser.preferences?.difficultyPreference || 'Medium',
+        availableTime: parsedUser.preferences?.availableTime || 30
       }));
     }
   }, [router]);
@@ -62,17 +68,30 @@ export default function Settings() {
         },
         body: JSON.stringify({
           userId: user._id,
-          name: formData.name
+          name: formData.name,
+          preferences: {
+            skillGoals: formData.skillGoals,
+            difficultyPreference: formData.difficultyPreference,
+            availableTime: formData.availableTime
+          }
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        const updatedUser = { ...user, name: formData.name };
+        const updatedUser = { 
+          ...user, 
+          name: formData.name,
+          preferences: {
+            skillGoals: formData.skillGoals,
+            difficultyPreference: formData.difficultyPreference,
+            availableTime: formData.availableTime
+          }
+        };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         setUser(updatedUser);
-        showMessage('Profile updated successfully!', 'success');
+        showMessage('Profile and preferences updated successfully!', 'success');
       } else {
         showMessage(data.error || 'Failed to update profile', 'error');
       }
@@ -82,6 +101,15 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSkillGoal = (skill) => {
+    setFormData(prev => ({
+      ...prev,
+      skillGoals: prev.skillGoals.includes(skill)
+        ? prev.skillGoals.filter(s => s !== skill)
+        : [...prev.skillGoals, skill]
+    }));
   };
 
   const updatePassword = async (e) => {
@@ -211,12 +239,22 @@ export default function Settings() {
                 </h1>
                 <p className="text-gray-600 mt-1">Manage your account and preferences</p>
               </div>
-              <button
-                onClick={() => router.push('/activities')}
-                className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
-              >
-                ← Back to Activities
-              </button>
+              <div className="flex gap-3">
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => router.push('/admin/edit-activities')}
+                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
+                  >
+                    Admin Edit
+                  </button>
+                )}
+                <button
+                  onClick={() => router.push('/activities')}
+                  className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
+                >
+                  ← Back to Activities
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -240,7 +278,7 @@ export default function Settings() {
           {/* Profile Information */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-6 border border-white/20">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <span>👤</span> Profile Information
+              Profile Information
             </h2>
             <form onSubmit={updateProfile}>
               <div className="mb-4">
@@ -258,7 +296,7 @@ export default function Settings() {
 
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
+                  Display Name
                 </label>
                 <input
                   type="text"
@@ -270,16 +308,79 @@ export default function Settings() {
                 />
               </div>
 
+              {/* Skill Goals / Interests */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  🎯 Skill Goals & Interests
+                </label>
+                <p className="text-xs text-gray-500 mb-3">Select the categories you're interested in (can select multiple)</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {['Creativity', 'Mindfulness', 'Productivity', 'Communication', 'Fitness', 'Learning', 'Social', 'Self-Care'].map(skill => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => toggleSkillGoal(skill)}
+                      className={`p-3 rounded-lg font-semibold text-sm transition-all ${
+                        formData.skillGoals.includes(skill)
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {skill}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Difficulty Preference */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  📊 Preferred Difficulty Level
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {['Easy', 'Medium', 'Hard'].map(diff => (
+                    <button
+                      key={diff}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, difficultyPreference: diff }))}
+                      className={`p-3 rounded-lg font-semibold transition-all ${
+                        formData.difficultyPreference === diff
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {diff}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Available Time */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  ⏱️ Available Time (minutes)
+                </label>
+                <input
+                  type="number"
+                  value={formData.availableTime}
+                  onChange={(e) => setFormData(prev => ({ ...prev, availableTime: parseInt(e.target.value) }))}
+                  min="5"
+                  max="300"
+                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                />
+                <p className="text-xs text-gray-500 mt-1">How much time you typically have for activities (5-300 minutes)</p>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
                 className={`w-full py-3 rounded-lg font-bold text-white transition-all ${
                   loading
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg transform hover:scale-105'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-lg transform hover:scale-102'
                 }`}
               >
-                {loading ? 'Updating...' : 'Update Profile'}
+                {loading ? 'Updating...' : 'Update Profile & Preferences'}
               </button>
             </form>
           </div>
@@ -287,7 +388,7 @@ export default function Settings() {
           {/* Change Password */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-6 border border-white/20">
             <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-              <span>🔒</span> Change Password
+              Change Password
             </h2>
             <form onSubmit={updatePassword}>
               <div className="mb-4">
@@ -340,34 +441,12 @@ export default function Settings() {
                 className={`w-full py-3 rounded-lg font-bold text-white transition-all ${
                   loading
                     ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-green-500 to-teal-500 hover:shadow-lg transform hover:scale-105'
+                    : 'bg-gradient-to-r from-green-500 to-teal-500 hover:shadow-lg transform hover:scale-102'
                 }`}
               >
                 {loading ? 'Updating...' : 'Update Password'}
               </button>
             </form>
-          </div>
-
-          {/* Admin Tools */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border-2 border-purple-200 mb-6">
-            <h2 className="text-2xl font-bold text-purple-600 mb-6 flex items-center gap-2">
-              <span>⚙️</span> Admin Tools
-            </h2>
-            
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <div>
-                  <h3 className="font-bold text-purple-800">Edit Activities & Videos</h3>
-                  <p className="text-sm text-purple-600">Update activity details and video tutorial links</p>
-                </div>
-                <button
-                  onClick={() => router.push('/admin/edit-activities')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transition"
-                >
-                  ✏️ Edit
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Danger Zone */}
@@ -432,3 +511,4 @@ export default function Settings() {
     </div>
   );
 }
+

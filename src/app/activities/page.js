@@ -9,6 +9,7 @@ export default function Activities() {
   const [expandedCards, setExpandedCards] = useState(new Set());
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [userActivities, setUserActivities] = useState(new Map()); // Map of activityId -> { status, userActivityId }
   const router = useRouter();
 
   const categories = ['All', 'Creativity', 'Mindfulness', 'Productivity', 'Communication', 'Fitness', 'Learning', 'Social', 'Self-Care'];
@@ -23,10 +24,42 @@ export default function Activities() {
         router.push('/');
         return;
       }
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      // Fetch user activities when user is set
+      fetchUserActivities(parsedUser._id);
     }
     fetchActivities();
   }, [router]);
+
+  const fetchUserActivities = async (userId) => {
+    try {
+      const response = await fetch(`/api/user-activities?userId=${userId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (data.userActivities && Array.isArray(data.userActivities)) {
+        // Create a map of activityId -> { status, userActivityId }
+        const activityMap = new Map();
+        data.userActivities.forEach(ua => {
+          if (ua.activityId && ua.activityId._id) {
+            activityMap.set(ua.activityId._id, {
+              status: ua.status,
+              userActivityId: ua._id
+            });
+          }
+        });
+        setUserActivities(activityMap);
+      }
+    } catch (err) {
+      console.error('Error fetching user activities:', err);
+    }
+  };
 
   const fetchActivities = async () => {
     try {
@@ -85,9 +118,28 @@ export default function Activities() {
       if (response.ok) {
         // Use the userActivity ID from the response (not the activity ID)
         const userActivityId = data.userActivity?._id || data._id;
-        alert(`✓ "${activity.title}" added to your activities!`);
+        
+        if (data.isReset) {
+          alert(`🔄 "${activity.title}" has been reset and added to your activities!`);
+        } else {
+          alert(`✓ "${activity.title}" added to your activities!`);
+        }
+        
+        // Update the userActivities map
+        setUserActivities(prev => {
+          const newMap = new Map(prev);
+          newMap.set(activity._id, {
+            status: 'added',
+            userActivityId: userActivityId
+          });
+          return newMap;
+        });
+        
         // Navigate to the activity execution page with the userActivity ID
         router.push(`/activity-execute/${userActivityId}`);
+      } else if (response.status === 409) {
+        // Activity already exists and is not completed
+        alert(data.message || 'Activity already in your list');
       } else {
         alert(data.error || 'Failed to add activity');
       }
@@ -127,10 +179,17 @@ export default function Activities() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    router.push('/');
-  };
+  // Sort activities: user's preferred categories first, then others
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    const userPreferences = user?.preferences?.skillGoals || [];
+    const aIsPreferred = userPreferences.includes(a.category);
+    const bIsPreferred = userPreferences.includes(b.category);
+    
+    // If both or neither are preferred, keep original order
+    if (aIsPreferred === bIsPreferred) return 0;
+    // Preferred activities come first
+    return aIsPreferred ? -1 : 1;
+  });
 
   if (loading) {
     return (
@@ -161,35 +220,29 @@ export default function Activities() {
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                   Daily Activity Tracker
                 </h1>
-                <p className="text-gray-600 mt-1">Welcome, <span className="font-semibold text-blue-600">{user?.name}</span>! 🌟</p>
+                <p className="text-gray-600 mt-1">Welcome, <span className="font-semibold text-blue-600">{user?.name}</span>!</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push('/user-activity')}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                 >
                   My Activities
                 </button>
                 <button
                   onClick={() => router.push('/settings')}
-                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                  className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                 >
                   ⚙️ Settings
                 </button>
                 {user?.role === 'admin' && (
                   <button
                     onClick={() => router.push('/admin/edit-activities')}
-                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition"
+                    className="px-6 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transform hover:scale-102 transition"
                   >
-                    🔒 Admin Edit
+                    Admin Edit
                   </button>
                 )}
-                <button
-                  onClick={handleLogout}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition"
-                >
-                  Logout
-                </button>
               </div>
             </div>
           </div>
@@ -205,14 +258,12 @@ export default function Activities() {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="🔍 Search activities..."
+                    placeholder="Search activities..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full px-6 py-4 pl-12 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition text-lg"
                   />
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl">
-                    🔍
-                  </span>
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl"></span>
                 </div>
               </div>
 
@@ -224,7 +275,7 @@ export default function Activities() {
                     <button
                       key={category}
                       onClick={() => setSelectedCategory(category)}
-                      className={`px-4 py-2 rounded-full font-semibold transition transform hover:scale-105 ${
+                      className={`px-4 py-2 rounded-full font-semibold transition transform hover:scale-102 ${
                         selectedCategory === category
                           ? category === 'All'
                             ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
@@ -242,31 +293,36 @@ export default function Activities() {
 
           {/* Activities Grid */}
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div>
               <h2 className="text-2xl font-bold text-gray-800">
                 {selectedCategory === 'All' ? 'All Activities' : `${selectedCategory} Activities`}
-                <span className="ml-2 text-blue-600">({filteredActivities.length})</span>
+                <span className="ml-2 text-blue-600">({sortedActivities.length})</span>
               </h2>
             </div>
 
-            {filteredActivities.length === 0 ? (
+            {sortedActivities.length === 0 ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-12 text-center border border-white/20">
-                <div className="text-6xl mb-4">🔍</div>
+                <div className="text-6xl mb-4"></div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">No activities found</h3>
                 <p className="text-gray-600">Try adjusting your filters or search query</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredActivities.map(activity => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-auto">
+                {sortedActivities.map(activity => {
                   const isExpanded = expandedCards.has(activity._id);
+                  const userActivity = userActivities.get(activity._id);
+                  const isAdded = !!userActivity;
+                  const isCompleted = userActivity?.status === 'completed';
+                  const isInProgress = userActivity?.status === 'in-progress';
+                  const isSkipped = userActivity?.status === 'skipped';
                   
                   return (
                     <div
                       key={activity._id}
-                      className="group transform transition-all duration-300 hover:scale-102"
+                      className="transform transition-all duration-300 hover:scale-102"
                     >
-                      <div className={`bg-gradient-to-br ${getCategoryGradient(activity.category)} p-0.5 rounded-2xl shadow-lg hover:shadow-2xl transition h-full`}>
-                        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 h-full flex flex-col">
+                      <div className={`bg-gradient-to-br ${getCategoryGradient(activity.category)} p-0.5 rounded-2xl shadow-lg hover:shadow-2xl transition`}>
+                        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 flex flex-col">
                           {/* Category Badge */}
                           <div className="mb-4">
                             <span className={`inline-block px-4 py-1 rounded-full text-sm font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)}`}>
@@ -284,6 +340,53 @@ export default function Activities() {
                             {activity.description}
                           </p>
 
+                          {/* Expandable Details */}
+                          {isExpanded && (
+                            <div className="mb-4 space-y-3">
+                              {/* Full Instructions */}
+                              {activity.instructions && activity.instructions.length > 0 && (
+                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                  <h4 className="font-bold text-blue-800 mb-2">📝 Instructions:</h4>
+                                  <ul className="space-y-1">
+                                    {activity.instructions.map((instruction, idx) => (
+                                      <li key={idx} className="text-sm text-gray-700">
+                                        • {instruction}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {/* All Steps */}
+                              {activity.steps && activity.steps.length > 0 && (
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                                  <h4 className="font-bold text-purple-800 mb-2">📋 Steps:</h4>
+                                  <div className="space-y-2">
+                                    {activity.steps.map((step, idx) => (
+                                      <div key={idx} className="bg-white p-3 rounded border border-purple-100">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="font-semibold text-purple-600">Step {step.stepNumber}:</span>
+                                          <span className="font-medium text-gray-800">{step.title}</span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 ml-4">{step.description}</p>
+                                        {step.videoUrl && (
+                                          <a
+                                            href={step.videoUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-600 hover:underline ml-4 inline-block mt-1"
+                                          >
+                                            Watch video tutorial
+                                          </a>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {/* Meta Info */}
                           <div className="flex flex-wrap gap-2 mb-4">
                             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getDifficultyColor(activity.difficulty)}`}>
@@ -300,7 +403,7 @@ export default function Activities() {
                           </div>
 
                           {/* Instructions Preview */}
-                          {activity.instructions && activity.instructions.length > 0 && (
+                          {!isExpanded && activity.instructions && activity.instructions.length > 0 && (
                             <div className="mb-4 text-sm">
                               <p className="text-gray-500 font-semibold mb-1">Quick Preview:</p>
                               <p className="text-gray-700 truncate">• {activity.instructions[0]}</p>
@@ -310,13 +413,49 @@ export default function Activities() {
                             </div>
                           )}
 
-                          {/* Action Button */}
+                          {/* Toggle Details Button */}
                           <button
-                            onClick={() => addActivityToUser(activity)}
-                            className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)} hover:shadow-xl transform hover:scale-105 transition-all duration-300`}
+                            onClick={() => toggleExpanded(activity._id)}
+                            className="w-full mb-3 py-2 rounded-lg font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all duration-300 border border-blue-200"
                           >
-                            Add Activity
+                            {isExpanded ? '▲ Hide Details' : '▼ Show All Details'}
                           </button>
+
+                          {/* Action Button - Dynamic based on status */}
+                          {isCompleted ? (
+                            <button
+                              onClick={() => addActivityToUser(activity)}
+                              className="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:shadow-xl transform hover:scale-102 transition-all duration-300"
+                            >
+                              🔄 Restart Activity
+                            </button>
+                          ) : isAdded ? (
+                            <div className="space-y-2">
+                              <button
+                                disabled
+                                className="w-full py-3 rounded-xl font-bold text-gray-500 bg-gray-200 cursor-not-allowed"
+                              >
+                                ✓ Already Added
+                                {isInProgress && ' (In Progress)'}
+                                {isSkipped && ' (Skipped)'}
+                              </button>
+                              {userActivity?.userActivityId && (
+                                <button
+                                  onClick={() => router.push(`/activity-execute/${userActivity.userActivityId}`)}
+                                  className="w-full py-2 rounded-lg font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all duration-300 border border-blue-200"
+                                >
+                                  → View Activity
+                                </button>
+                              )}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => addActivityToUser(activity)}
+                              className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${getCategoryGradient(activity.category)} hover:shadow-xl transform hover:scale-102 transition-all duration-300`}
+                            >
+                              Add to My Activities
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -351,3 +490,4 @@ export default function Activities() {
     </div>
   );
 }
+

@@ -23,43 +23,8 @@ const UserActivitySchema = new mongoose.Schema(
       enum: ['added', 'pending', 'in-progress', 'completed', 'skipped', 'saved', 'deleted'],
       default: 'added',
     },
-    scheduledTime: {
-      type: String, // Time slot like "09:00", "14:30", etc.
-      default: null,
-    },
-    scheduledDate: {
-      type: Date,
-      default: null,
-    },
     completedAt: {
       type: Date,
-      default: null,
-    },
-    timeSpent: {
-      type: Number, // in minutes
-      default: null,
-      min: [0, 'Time spent cannot be negative'],
-    },
-    rating: {
-      type: Number,
-      min: [1, 'Rating must be at least 1'],
-      max: [5, 'Rating cannot be more than 5'],
-      default: null,
-    },
-    feedback: {
-      type: String,
-      trim: true,
-      maxLength: [200, 'Feedback cannot be more than 200 characters'],
-      default: '',
-    },
-    notes: {
-      type: String,
-      trim: true,
-      maxLength: [500, 'Notes cannot be more than 500 characters'],
-      default: '',
-    },
-    scheduledTime: {
-      type: String,
       default: null,
     },
     // Progress tracking for step-by-step activities

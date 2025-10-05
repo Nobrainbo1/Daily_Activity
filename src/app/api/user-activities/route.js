@@ -140,9 +140,35 @@ export async function POST(request) {
     console.log('Existing user activity:', existingUserActivity);
     
     if (existingUserActivity) {
+      // If activity is completed, allow resetting it
+      if (existingUserActivity.status === 'completed') {
+        console.log('Resetting completed activity...');
+        existingUserActivity.status = 'added';
+        existingUserActivity.progress = {
+          currentStep: 0,
+          completedSteps: [],
+          lastUpdated: new Date()
+        };
+        existingUserActivity.completedAt = null;
+        existingUserActivity.createdAt = new Date(); // Reset the added date
+        
+        await existingUserActivity.save();
+        await existingUserActivity.populate('activityId');
+        
+        return NextResponse.json({ 
+          message: 'Activity reset and added to your list',
+          userActivity: existingUserActivity,
+          isReset: true
+        });
+      }
+      
+      // If activity is not completed, return conflict error
       return NextResponse.json(
-        { message: 'Activity already in your list' },
-        { status: 400 }
+        { 
+          message: 'Activity already in your list',
+          status: existingUserActivity.status 
+        },
+        { status: 409 }
       );
     }
 

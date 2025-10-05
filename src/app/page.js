@@ -63,7 +63,12 @@ export default function Home() {
 
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.user));
-        router.push('/activities');
+        // Redirect to onboarding page for new signups, activities for login
+        if (isLogin) {
+          router.push('/activities');
+        } else {
+          router.push('/onboarding');
+        }
       } else {
         setError(data.error || 'Authentication failed');
       }
@@ -113,6 +118,14 @@ export default function Home() {
         <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center">
           {/* Left Side - Hero Content */}
           <div className="text-white space-y-6">
+            {/* App Name Title */}
+            <div className="mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-white/90 tracking-wide mb-2">
+                DAILY ACTIVITY
+              </h2>
+              <div className="h-1 w-32 bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 rounded-full"></div>
+            </div>
+
             <div className="space-y-4">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight">
                 Transform Your
@@ -127,8 +140,8 @@ export default function Home() {
 
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
-                  ✅
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">Step-by-Step Guidance</h3>
@@ -137,8 +150,8 @@ export default function Home() {
               </div>
               
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
-                  📊
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">Track Your Progress</h3>
@@ -147,8 +160,8 @@ export default function Home() {
               </div>
               
               <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl">
-                  🎯
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-white"></div>
                 </div>
                 <div>
                   <h3 className="font-bold text-lg">Personalized Activities</h3>
@@ -178,7 +191,7 @@ export default function Home() {
                   </p>
                   <button
                     onClick={() => router.push('/activities')}
-                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-bold hover:shadow-lg transform hover:scale-105 transition"
+                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-bold hover:shadow-lg transform hover:scale-102 transition"
                   >
                     Go to Activities →
                   </button>
@@ -195,7 +208,7 @@ export default function Home() {
                 {!isLogin && (
                   <div>
                     <label className="block text-gray-700 font-semibold mb-2">
-                      Full Name
+                      Display Name
                     </label>
                     <input
                       type="text"
@@ -245,7 +258,7 @@ export default function Home() {
                   className={`w-full py-4 rounded-lg font-bold text-white text-lg shadow-lg transform transition-all duration-300 ${
                     loading
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-2xl hover:scale-105'
+                      : 'bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:shadow-2xl hover:scale-102'
                   }`}
                 >
                   {loading ? (
@@ -304,3 +317,4 @@ export default function Home() {
     </div>
   );
 }
+
